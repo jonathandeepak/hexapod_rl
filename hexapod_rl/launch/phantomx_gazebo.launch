@@ -2,7 +2,7 @@
 
   <!-- 1. Start Gazebo paused -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find hexapod_rl)/worlds/hexapod_world.world"/>
+    <arg name="world_name" value="$(find hexapod_rl)/worlds/hexapo_world.world"/>
     <arg name="paused" value="true"/>
   </include>
 

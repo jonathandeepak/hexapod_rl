@@ -8,26 +8,37 @@ from hexapod_rl.phantomx_env import PhantomXEnv
 from hexapod_rl.reward_plot import RewardPlotCallback
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 
 
 # Enable live plotting
 plt.ion()
 
 
+class CheckpointCallback(BaseCallback):
+    def __init__(self, save_freq, save_path, verbose=1):
+        super().__init__(verbose)
+        self.save_freq = save_freq
+        self.save_path = save_path
+        os.makedirs(save_path, exist_ok=True)
+
+    def _on_step(self) -> bool:
+        if self.num_timesteps % self.save_freq == 0:
+            checkpoint_file = os.path.join(self.save_path, f"model_step_{self.num_timesteps}.zip")
+            self.model.save(checkpoint_file)
+            if self.verbose:
+                print(f" Saved model checkpoint at step {self.num_timesteps}")
+        return True
+
+
 def main():
-    # Initialize ROS node
     rospy.init_node("phantomx_rl_train", anonymous=True)
-
-    # Create the custom environment
     env = PhantomXEnv()
-
-    # Optional: validate the Gym interface
     check_env(env, warn=True)
 
-    # Define model path
-    model_path = "phantomx_dqn_model_v5"
+    model_path = "phantomx_dqn_model_v7"
+    checkpoint_dir = "checkpoints"
 
-    # Load existing model or create new
     if os.path.exists(model_path + ".zip"):
         print(" Loading existing model...")
         model = DQN.load(model_path, env=env)
@@ -47,19 +58,19 @@ def main():
             verbose=1,
         )
 
-    # Create reward plot callback
-    callback = RewardPlotCallback()
+    # Create callbacks
+    reward_callback = RewardPlotCallback()
+    checkpoint_callback = CheckpointCallback(save_freq=50000, save_path=checkpoint_dir)
+    callback = CallbackList([reward_callback, checkpoint_callback])
 
     try:
-        # Train the model
-        model.learn(total_timesteps=10000000000, callback=callback)
+        model.learn(total_timesteps=1000000, callback=callback)
     except (KeyboardInterrupt, SystemExit):
-        print("\n Training interrupted by user. Saving model...")
+        print("\nTraining interrupted by user. Saving model...")
 
-    # Save model
     model.save(model_path)
-    print(" Training complete. Model saved as 'phantomx_dqn_model'.")
-
+    print("Training complete. Model saved as 'phantomx_dqn_model'.")
+    
 
 if __name__ == "__main__":
     main()

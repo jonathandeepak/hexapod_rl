@@ -9,10 +9,26 @@ from hexapod_rl.phantomx_env import PhantomXEnv
 from hexapod_rl.reward_plot_headless import RewardPlotHeadlessCallback
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList
 
 
 # Enable live plotting
 plt.ion()
+
+
+class CheckpointCallback(BaseCallback):
+    def __init__(self, save_freq: int, save_path: str, verbose=0):
+        super().__init__(verbose)
+        self.save_freq = save_freq
+        self.save_path = save_path
+
+    def _on_step(self) -> bool:
+        if self.n_calls % self.save_freq == 0:
+            model_save_path = os.path.join(self.save_path, f"model_step_{self.n_calls}.zip")
+            self.model.save(model_save_path)
+            if self.verbose > 0:
+                print(f"Model checkpoint saved at step {self.n_calls}")
+        return True
 
 
 def main():
@@ -22,11 +38,13 @@ def main():
     # Create the custom environment
     env = PhantomXEnv()
 
-    # Optional: validate the Gym interface
+    # Validate the Gym interface
     check_env(env, warn=True)
 
     # Define model path
-    model_path = "phantomx_dqn_model_v5"
+    model_path = "phantomx_dqn_model_v7"
+    save_dir = os.path.expanduser('~/phantom_ws/plots')
+    os.makedirs(save_dir, exist_ok=True)
 
     # Load existing model or create new
     if os.path.exists(model_path + ".zip"):
@@ -48,18 +66,21 @@ def main():
             verbose=1,
         )
 
-    # Create reward plot callback
-    callback = RewardPlotHeadlessCallback(save_dir=os.path.expanduser('~/phantom_ws/plots'))
+    # Combine callbacks: reward plotting + periodic saving
+    callback = CallbackList([
+        RewardPlotHeadlessCallback(save_dir=save_dir),
+        CheckpointCallback(save_freq=50000, save_path=save_dir, verbose=1)
+    ])
 
     try:
         # Train the model
-        model.learn(total_timesteps=10000000000, callback=callback)
+        model.learn(total_timesteps=1000000, callback=callback)
     except (KeyboardInterrupt, SystemExit):
         print("\n Training interrupted by user. Saving model...")
 
-    # Save model
+    # Save final model
     model.save(model_path)
-    print(" Training complete. Model saved as 'phantomx_dqn_model'.")
+    print(f" Training complete. Model saved as '{model_path}.zip'.")
 
 
 if __name__ == "__main__":

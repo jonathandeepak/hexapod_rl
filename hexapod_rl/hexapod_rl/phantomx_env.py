@@ -47,8 +47,8 @@ class PhantomXEnv(gym.Env):
 
 
         self.phase = 0
-        self.find_threshold = 0.3 # meters: when robot is “at” the block
-        self.goal_threshold = 0.3  # meters: when block is “at” the goal
+        self.find_threshold = 1.0 # meters: when robot is “at” the block
+        self.goal_threshold = 0.5  # meters: when block is “at” the goal
 
         rospy.sleep(1.0)  # ensure subscriptions are active
 
@@ -148,12 +148,12 @@ class PhantomXEnv(gym.Env):
         # ——— 1) Execute action ———
         twist = Twist()
         if action == 0:
-            twist.linear.x = 1.0
+            twist.linear.x = 2.0
         elif action == 1:
-            twist.angular.z = 0.5
-        elif action == 2:
-            twist.angular.z = -0.5
-        # action == 3 → stop (zero twist)
+            twist.angular.z = 1.5
+        elif action == 3:
+            twist.linear.x = 0.0    # Stop movement
+            twist.angular.z = 0.0   # Stop rotation
         self.cmd_pub.publish(twist)
         rospy.sleep(0.05)
 
@@ -245,8 +245,10 @@ class PhantomXEnv(gym.Env):
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed) 
         self._set_model_pose("phantomx", 0.0, 0.0, 0.25)
-        x_block_pos = np.random.uniform(-1.2, 1.2)
-        y_block_pos = np.random.uniform(-1.2, 1.2)
+        # x_block_pos = np.random.uniform(-0.5, 0.5)
+        # y_block_pos = np.random.uniform(-0.5, 0.5)
+        x_block_pos = 0.5
+        y_block_pos = 2.0
 
         # x_block_pos = 1.5
         # y_block_pos = 1.5
@@ -267,50 +269,6 @@ class PhantomXEnv(gym.Env):
         info = {}
         self.phase = 0
         return obs, info
-
-    # def reset(self, *, seed=None, options=None):
-    #     super().reset(seed=seed) 
-    #     # 1) Reset robot position using Gazebo services
-    #     rospy.wait_for_service('/gazebo/set_model_state')
-    #     try:
-    #         from gazebo_msgs.srv import SetModelState
-    #         from gazebo_msgs.msg import ModelState
-
-    #         set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
-
-    #         # Create model state
-    #         model_state = ModelState()
-    #         model_state.model_name = 'phantomx'  # <<< Change this if your robot model name is different!
-    #         model_state.pose.position.x = 0.0
-    #         model_state.pose.position.y = 0.0
-    #         model_state.pose.position.z = 0.2  # small lift to prevent ground collision
-    #         model_state.pose.orientation.x = 0.0
-    #         model_state.pose.orientation.y = 0.0
-    #         model_state.pose.orientation.z = 0.0
-    #         model_state.pose.orientation.w = 1.0  # facing straight
-
-    #         model_state.twist.linear.x = 0.0
-    #         model_state.twist.linear.y = 0.0
-    #         model_state.twist.linear.z = 0.0
-    #         model_state.twist.angular.x = 0.0
-    #         model_state.twist.angular.y = 0.0
-    #         model_state.twist.angular.z = 0.0
-
-    #         set_state(model_state)
-    #         rospy.sleep(0.2)  # give Gazebo some time
-
-    #     except rospy.ServiceException as e:
-    #         rospy.logerr(f"Service call failed: {e}")
-
-    #     # 2) Reset environment variables
-    #     self.episode_start_time = rospy.Time.now()
-    #     self.prev_dist_bt = None
-
-    #     # 3) Get initial observation
-    #     obs = self._get_obs()
-
-    #     return obs, {}
-
 
 
     def _get_obs(self):
@@ -412,77 +370,154 @@ class PhantomXEnv(gym.Env):
         else:
             return 0.0
         
+    # def _compute_reward(self, obs):
+    #     """
+    #     Returns (reward, done) based on:
+    #     • Phase 0: find block
+    #     • Phase 1: push block to target
+    #     • Camera bonuses in each phase
+    #     • Three-way delta shaping (closer/farther/no-move)
+    #     • Small time penalty each step
+    #     """
+    #     vec = obs["vector"]
+    #     img       = obs["image"]
+    #     robot_xy  = vec[0:2]
+    #     block_xy  = vec[2:4]
+    #     goal_xy   = vec[4:6]
+
+    #     dist_rb = np.linalg.norm(block_xy - robot_xy)
+    #     dist_bt = np.linalg.norm(block_xy - goal_xy)
+
+    #     reward     = 0.0
+    #     terminated = False
+    #     epsilon    = 0.01   # threshold for “no significant move”
+
+    #     # --- PHASE 0: FIND THE BLOCK ---
+    #     if self.phase == 0:
+    #         # Base proximity reward + visibility bonus
+    #         reward += 10.0 - dist_rb
+    #         reward += self.camera_block_visibility_reward(img) * 5.0
+
+    #         # Delta shaping on dist_rb
+    #         if self.prev_dist_rb is not None:
+    #             delta_rb = self.prev_dist_rb - dist_rb
+    #             if   delta_rb >  epsilon:
+    #                 reward += delta_rb * 10.0   # moved closer
+    #             elif delta_rb < -epsilon:
+    #                 reward += delta_rb * 15.0   # moved away
+    #             else:
+    #                 reward -= 0.5               # no movement
+    #         self.prev_dist_rb = dist_rb
+
+    #         # Transition to phase 1?
+    #         if dist_rb <= self.find_threshold:
+    #             reward     += 100.0
+    #             self.phase  = 1
+    #             self.prev_dist_bt = dist_bt
+
+    #     # --- PHASE 1: PUSH TO TARGET ---
+    #     else:
+    #         # Centering bonus
+    #         reward += self.centering_reward(img) * 5.0
+
+    #         # Delta shaping on dist_bt
+    #         if self.prev_dist_bt is not None:
+    #             delta_bt = self.prev_dist_bt - dist_bt
+    #             if   delta_bt >  epsilon:
+    #                 reward += delta_bt * 20.0   # pushed closer
+    #             elif delta_bt < -epsilon:
+    #                 reward += delta_bt * 30.0   # pushed away
+    #             else:
+    #                 reward -= 1.0               # no movement
+    #         self.prev_dist_bt = dist_bt
+
+    #         # Success?
+    #         if dist_bt <= self.goal_threshold:
+    #             reward     += 100.0
+    #             terminated = True
+
+    #     # --- SMALL TIME PENALTY TO ENCOURAGE SPEED ---
+    #     reward -= 0.1
+
+    #     return float(reward), terminated
+
+
     def _compute_reward(self, obs):
         """
         Returns (reward, done) based on:
         • Phase 0: find block
-        • Phase 1: push block to target
-        • Camera bonuses in each phase
-        • Three-way delta shaping (closer/farther/no-move)
-        • Small time penalty each step
+        • Phase 1: push block to target and align orientation
         """
-        vec = obs["vector"]
+        vec       = obs["vector"]
         img       = obs["image"]
         robot_xy  = vec[0:2]
         block_xy  = vec[2:4]
         goal_xy   = vec[4:6]
+        yaw_error_block = vec[8]
+        yaw_error_goal  = vec[9]
 
         dist_rb = np.linalg.norm(block_xy - robot_xy)
         dist_bt = np.linalg.norm(block_xy - goal_xy)
 
         reward     = 0.0
         terminated = False
-        epsilon    = 0.01   # threshold for “no significant move”
+        epsilon    = 0.01
 
         # --- PHASE 0: FIND THE BLOCK ---
         if self.phase == 0:
-            # Base proximity reward + visibility bonus
             reward += 10.0 - dist_rb
             reward += self.camera_block_visibility_reward(img) * 5.0
 
-            # Delta shaping on dist_rb
             if self.prev_dist_rb is not None:
                 delta_rb = self.prev_dist_rb - dist_rb
                 if   delta_rb >  epsilon:
-                    reward += delta_rb * 10.0   # moved closer
+                    reward += delta_rb * 10.0
                 elif delta_rb < -epsilon:
-                    reward += delta_rb * 15.0   # moved away
+                    reward += delta_rb * 15.0
                 else:
-                    reward -= 0.5               # no movement
+                    reward -= 0.5
             self.prev_dist_rb = dist_rb
 
-            # Transition to phase 1?
             if dist_rb <= self.find_threshold:
-                reward     += 100.0
-                self.phase  = 1
+                reward += 100.0
+                self.phase = 1
+                rospy.logerr("Phase transition: Robot has found the block. Now pushing to the target.")
 
         # --- PHASE 1: PUSH TO TARGET ---
         else:
-            # Centering bonus
             reward += self.centering_reward(img) * 5.0
 
-            # Delta shaping on dist_bt
+            # --- Orientation-based reward (new) ---
+            # Penalize angle error to block (want robot to face block)
+            err_block = abs(yaw_error_block)
+            err_align = abs(yaw_error_block - yaw_error_goal)
+
+            err_block = min(err_block, np.pi - err_block)
+            err_align = min(err_align, np.pi - err_align)
+
+            reward_facing_block = 1.0 - (err_block / np.pi)      # closer to 1 is better
+            reward_alignment    = 1.0 - (err_align / np.pi)
+
+            # Add weighted orientation reward
+            reward += 1.0 * reward_facing_block + 1.0 * reward_alignment
+
+            # --- Delta shaping on block-to-target distance ---
             if self.prev_dist_bt is not None:
                 delta_bt = self.prev_dist_bt - dist_bt
                 if   delta_bt >  epsilon:
-                    reward += delta_bt * 20.0   # pushed closer
+                    reward += delta_bt * 20.0
                 elif delta_bt < -epsilon:
-                    reward += delta_bt * 30.0   # pushed away
+                    reward += delta_bt * 30.0
                 else:
-                    reward -= 1.0               # no movement
+                    reward -= 1.0
             self.prev_dist_bt = dist_bt
 
-            # Success?
             if dist_bt <= self.goal_threshold:
-                reward     += 100.0
+                reward += 1000.0
                 terminated = True
 
-        # --- SMALL TIME PENALTY TO ENCOURAGE SPEED ---
-        reward -= 0.1
-
-        return float(reward), terminated
-
-
+        reward -= 0.1  # time penalty
+        return float(reward),terminated
 
 
     def _set_model_pose(self, name, x, y, z):
