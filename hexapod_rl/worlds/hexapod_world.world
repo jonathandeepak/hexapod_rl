@@ -85,7 +85,7 @@
     <model name="push_block">
         <static>false</static>
         <link name="link">
-            <pose>0 0 0 0 0 0</pose>
+            <pose>0.0 0.0 0.0 0 0 0</pose>
             <collision name="collision">
             <geometry>
                 <box>
@@ -120,12 +120,12 @@
     <model name="target_marker">
       <static>true</static>
       <link name="link">
-        <pose>2 2 0.01 0 0 0</pose>
+        <pose>0.0 0.0 0.02 0 0 0</pose>
         <visual name="visual">
           <geometry>
             <cylinder>
               <radius>0.3</radius>
-              <length>0.01</length>
+              <length>0.001</length>
             </cylinder>
           </geometry>
           <material>

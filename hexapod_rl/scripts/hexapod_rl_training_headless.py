@@ -17,17 +17,16 @@ plt.ion()
 
 
 class CheckpointCallback(BaseCallback):
-    def __init__(self, save_freq: int, save_path: str, verbose=0):
+    def __init__(self, save_freq: int, model_path: str, verbose=0):
         super().__init__(verbose)
         self.save_freq = save_freq
-        self.save_path = save_path
+        self.model_path = model_path  # full path with filename
 
     def _on_step(self) -> bool:
-        if self.n_calls % self.save_freq == 0:
-            model_save_path = os.path.join(self.save_path, f"model_step_{self.n_calls}.zip")
-            self.model.save(model_save_path)
+        if self.num_timesteps % self.save_freq == 0:
+            self.model.save(self.model_path)
             if self.verbose > 0:
-                print(f"Model checkpoint saved at step {self.n_calls}")
+                print(f" Model checkpoint overwritten at {self.num_timesteps} → {self.model_path}")
         return True
 
 
@@ -42,12 +41,13 @@ def main():
     check_env(env, warn=True)
 
     # Define model path
-    model_path = "phantomx_dqn_model_v7"
-    save_dir = os.path.expanduser('~/phantom_ws/plots')
+    model = "phantomx_dqn_model_v8"
+    save_dir = os.path.expanduser('~/phantom_ws/src/hexapod_rl/RL_Models/')
     os.makedirs(save_dir, exist_ok=True)
+    model_path = os.path.join(save_dir, model + ".zip")
 
     # Load existing model or create new
-    if os.path.exists(model_path + ".zip"):
+    if os.path.exists(model_path):
         print(" Loading existing model...")
         model = DQN.load(model_path, env=env)
     else:
@@ -69,7 +69,7 @@ def main():
     # Combine callbacks: reward plotting + periodic saving
     callback = CallbackList([
         RewardPlotHeadlessCallback(save_dir=save_dir),
-        CheckpointCallback(save_freq=50000, save_path=save_dir, verbose=1)
+        CheckpointCallback(save_freq=50000,  model_path=os.path.join(save_dir, model_path), verbose=1)
     ])
 
     try:
@@ -80,7 +80,7 @@ def main():
 
     # Save final model
     model.save(model_path)
-    print(f" Training complete. Model saved as '{model_path}.zip'.")
+    print(f" Training complete. Model saved as '{model_path}")
 
 
 if __name__ == "__main__":

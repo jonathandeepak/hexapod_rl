@@ -18,6 +18,8 @@ catkin_install_python(PROGRAMS
   scripts/hexapod_rl_training.py
   scripts/rl_inference.py
   scripts/hexapod_rl_training_headless.py
+  scripts/hexapod_rl_ppo_training_headless.py
+  scripts/hexapod_rl_ppo_training.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

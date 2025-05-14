@@ -14,7 +14,7 @@
 
   <!-- 4. Spawn robot into Gazebo -->
   <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
-        args="-file $(find phantomx_description)/urdf/phantomx.urdf -urdf -model phantomx -z 0.2"
+        args="-file $(find phantomx_description)/urdf/phantomx.urdf -urdf -model phantomx -x 2.0 -y 2.0 -z 0.25"
         output="screen" />
 
   <!-- 5. Unpause Gazebo after few seconds -->
