@@ -139,7 +139,7 @@ def main():
         rospy.logerr(f"Failed to unpause Gazebo: {e}")
 
     env = PhantomXEnv()
-    model_path = os.path.expanduser('~/phantom_ws/src/hexapod_rl/RL_Models/phantomx_dqn_model_v8.zip')
+    model_path = os.path.expanduser('~/phantom_ws/src/hexapod_rl/RL_Models/phantomx_dqn_model_v6.zip')
     model = DQN.load(model_path, env=env)
 
     obs, _ = env.reset()

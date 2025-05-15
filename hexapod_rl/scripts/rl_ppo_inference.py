@@ -9,9 +9,9 @@ from std_srvs.srv import Empty
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from hexapod_rl.phantomx_env import PhantomXEnv
+from hexapod_rl.phantomx_env2 import PhantomXEnv
 from hexapod_rl.inference_reward_action_plotter import ActionPlotter
-from stable_baselines3 import DQN
+from stable_baselines3 import PPO
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
     env = PhantomXEnv()
     model_path = os.path.expanduser('~/phantom_ws/src/hexapod_rl/RL_Models/phantomx_ppo_model_v1.zip')
-    model = DQN.load(model_path, env=env)
+    model = PPO.load(model_path, env=env)
 
     obs, _ = env.reset()
     rate = rospy.Rate(10)

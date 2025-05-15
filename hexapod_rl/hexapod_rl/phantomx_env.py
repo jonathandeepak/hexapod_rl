@@ -15,7 +15,7 @@ from gazebo_msgs.msg import ModelState
 from tf.transformations import euler_from_quaternion
 
 class PhantomXEnv(gym.Env):
-    def _init_(self):
+    def __init__(self):
         # rospy.init_node("phantomx_env_node", anonymous=True)
         self.imu_data = None
         self.imu_sub = rospy.Subscriber("/phantomx/imu/data", Imu, self._imu_cb, queue_size=1)

@@ -17,6 +17,7 @@ catkin_package()
 catkin_install_python(PROGRAMS
   scripts/hexapod_rl_training.py
   scripts/rl_inference.py
+  scripts/rl_ppo_inference.py
   scripts/hexapod_rl_training_headless.py
   scripts/hexapod_rl_ppo_training_headless.py
   scripts/hexapod_rl_ppo_training.py
