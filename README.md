@@ -87,6 +87,8 @@ Run the Container with GUI support inside WSL **(Preferred)** or Ubuntu Desktop
 
 ```bash
 xhost +local:root
+```
+```bash
 
 docker run --rm -it --net=host --gpus all -e DISPLAY=$DISPLAY -e QT_X11_NO_MITSHM=1 -v /tmp/.X11-unix:/tmp/.X11-unix enpm690rlgroup2
 
