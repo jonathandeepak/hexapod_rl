@@ -9,10 +9,10 @@
 mkdir -p ~/phantom_ws/src
 cd ~/phantom_ws/src
 
+git clone https://github.com/jonathandeepak/hexapod_rl .
 git clone https://github.com/HumaRobotics/phantomx_gazebo.git
 git clone https://github.com/HumaRobotics/phantomx_description.git
 git clone https://github.com/HumaRobotics/phantomx_control.git
-git clone https://github.com/your-username/hexapod_rl.git .
 
 cd ..
 catkin_make
@@ -52,6 +52,14 @@ pip install stable-baselines3 gym numpy matplotlib opencv-python pandas PyYAML
 ```
 
 ### 4. Launch the simulation
+Launch Terminator
+```bash
+terminator
+```
+**Vertical Split (side-by-side)** | `Ctrl` + `Shift` + `E` |
+
+**Horizontal Split (top and bottom)** | `Ctrl` + `Shift` + `O` |
+
 Terminal 1 – Launch Gazebo simulation:
 ```bash
 source ~/phantom_ws/devel/setup.bash
@@ -60,10 +68,18 @@ roslaunch hexapod_rl phantomx_gazebo_combined.launch
 Terminal 2 – Run DQN model inference script
 ```bash
 source ~/phantom_ws/devel/setup.bash
-rosrun hexapod_rl hexapod_rl_training.py
+rosrun hexapod_rl rl_inference.py
+```
+Terminal 3 – Run PPO model inference script (stop DQN inference script before running this)
+```bash
+source ~/phantom_ws/devel/setup.bash
+rosrun hexapod_rl rl_ppo_inference.py
 ```
 
 ### 🐳 5. (Optional) Run the Simulation in Docker
+Copy **src.zip** and **dockerfile** into the same directory
+
+Build the docker image
 ```bash
 docker build -t enpm690rlgroup2 .
 ```
@@ -72,12 +88,12 @@ Run the Container with GUI support inside WSL **(Preferred)** or Ubuntu Desktop
 ```bash
 xhost +local:root
 
-docker run --rm -it --net=host --gpus all -e DISPLAY=$DISPLAY -e QT_X11_NO_MITSHM=1 -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/phantom_ws:/root/phantom_ws enpm690rlgroup2
+docker run --rm -it --net=host --gpus all -e DISPLAY=$DISPLAY -e QT_X11_NO_MITSHM=1 -v /tmp/.X11-unix:/tmp/.X11-unix enpm690rlgroup2
 
 ```
 
-Run the Container with GUI support using Docker desktop (for windows) + Xming server Setup
+Run the Container with GUI support using Docker desktop + Xming server setup (for windows)
 ```bash
-docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 -v C:\Users\YourUsername\phantom_ws:/root/phantom_ws enpm690rlgroup2
+docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 enpm690rlgroup2
 ```
 
