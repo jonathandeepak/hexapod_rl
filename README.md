@@ -8,7 +8,12 @@
 ```bash
 mkdir -p ~/phantom_ws/src
 cd ~/phantom_ws/src
-git clone https://github.com/your-username/hexapod-rl.git .
+
+git clone https://github.com/HumaRobotics/phantomx_gazebo.git
+git clone https://github.com/HumaRobotics/phantomx_description.git
+git clone https://github.com/HumaRobotics/phantomx_control.git
+git clone https://github.com/your-username/hexapod_rl.git .
+
 cd ..
 catkin_make
 source devel/setup.bash
@@ -54,6 +59,25 @@ roslaunch hexapod_rl phantomx_gazebo_combined.launch
 ```
 Terminal 2 – Run DQN model inference script
 ```bash
+source ~/phantom_ws/devel/setup.bash
 rosrun hexapod_rl hexapod_rl_training.py
+```
+
+### 🐳 5. (Optional) Run the Simulation in Docker
+```bash
+docker build -t enpm690rlgroup2 .
+```
+Run the Container with GUI support inside WSL **(Preferred)** or Ubuntu Desktop
+
+```bash
+xhost +local:root
+
+docker run --rm -it --net=host --gpus all -e DISPLAY=$DISPLAY -e QT_X11_NO_MITSHM=1 -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/phantom_ws:/root/phantom_ws enpm690rlgroup2
+
+```
+
+Run the Container with GUI support using Docker desktop (for windows) + Xming server Setup
+```bash
+docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 -v C:\Users\YourUsername\phantom_ws:/root/phantom_ws enpm690rlgroup2
 ```
 
