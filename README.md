@@ -99,3 +99,14 @@ Run the Container with GUI support using Docker desktop + Xming server setup (fo
 docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 enpm690rlgroup2
 ```
 
+## Acknowledgments
+
+This project uses the following open-source packages:
+
+- [phantomx_gazebo](https://github.com/HumaRobotics/phantomx_gazebo) by HumaRobotics  
+- [phantomx_description](https://github.com/HumaRobotics/phantomx_description) by HumaRobotics  
+- [phantomx_control](https://github.com/HumaRobotics/phantomx_control) by HumaRobotics  
+- [hector_gazebo](https://github.com/tu-darmstadt-ros-pkg/hector_gazebo) by TU Darmstadt ROS Package Group  
+
+We thank the original authors and contributors for their work.
+
