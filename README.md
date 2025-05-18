@@ -77,7 +77,7 @@ rosrun hexapod_rl rl_ppo_inference.py
 ```
 
 ### 🐳 5. (Optional) Run the Simulation in Docker
-Copy **src.zip** and **dockerfile** into the same directory
+Download src.zip and dockerfile from docker branch into the same directory
 
 Build the docker image
 ```bash
