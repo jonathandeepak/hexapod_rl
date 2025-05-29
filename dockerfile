@@ -1,13 +1,16 @@
 # Base image
-FROM osrf/ros:noetic-desktop-full
+FROM arm64v8/ros:noetic
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
+RUN apt-get update && apt upgrade -y
+RUN apt install ros-noetic-desktop-full
+
 # Update & install system tools, ROS packages, and Gazebo dependencies
-RUN apt-get update && apt upgrade -y && apt-get install -y \
+RUN apt-get install -y \
     python3-pip \
     python3-tk \
     git \
