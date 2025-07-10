@@ -2,6 +2,7 @@
 ---
 
 ## 🔧 Setup Instructions for running the Simulation in Docker🐳
+## 1. Create a Docker container
 
 Download **src.zip** and **dockerfile** from docker branch into the same directory
 
@@ -26,7 +27,7 @@ docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 enpm690rlgroup2
 ```
 
 
-### Launch the simulation
+### 2. Launch the simulation
 Launch Terminator
 ```bash
 terminator
