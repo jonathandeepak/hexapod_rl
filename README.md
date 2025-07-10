@@ -25,3 +25,28 @@ Run the Container with GUI support using Docker desktop + Xming server setup (fo
 docker run --rm -it --gpus all -e DISPLAY=host.docker.internal:0 enpm690rlgroup2
 ```
 
+
+### Launch the simulation
+Launch Terminator
+```bash
+terminator
+```
+**Vertical Split (side-by-side)** | `Ctrl` + `Shift` + `E` |
+
+**Horizontal Split (top and bottom)** | `Ctrl` + `Shift` + `O` |
+
+Terminal 1 – Launch Gazebo simulation:
+```bash
+source ~/phantom_ws/devel/setup.bash
+roslaunch hexapod_rl phantomx_gazebo_combined.launch
+```
+Terminal 2 – Run DQN model inference script
+```bash
+source ~/phantom_ws/devel/setup.bash
+rosrun hexapod_rl rl_inference.py
+```
+Terminal 3 – Run PPO model inference script (stop DQN inference script before running this)
+```bash
+source ~/phantom_ws/devel/setup.bash
+rosrun hexapod_rl rl_ppo_inference.py
+```
