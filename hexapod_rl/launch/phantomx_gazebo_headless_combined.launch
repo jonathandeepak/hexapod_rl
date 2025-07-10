@@ -1,0 +1,26 @@
+<launch>
+
+  <!-- 1. Start Gazebo paused -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find hexapod_rl)/worlds/hexapod_world.world"/>
+    <arg name="paused" value="true"/>
+    <arg name="gui" value="false"/> 
+  </include>
+
+  <!-- 2. Upload robot_description to parameter server -->
+  <param name="robot_description" textfile="$(find phantomx_description)/urdf/phantomx.urdf" />
+
+  <!-- 3. Start controllers first -->
+  <include file="$(find phantomx_control)/launch/phantomx_control.launch"/>
+
+  <!-- 4. Spawn robot into Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+        args="-file $(find phantomx_description)/urdf/phantomx.urdf -urdf -model phantomx -x 2.0 -y 2.0 -z 0.25"
+        output="screen" />
+
+  <!-- 5 : Unpause Gazebo after few seconds -->
+  <node name="phantomx_walker" pkg="phantomx_gazebo" type="walker.py" />
+  <node name="unpause_gazebo" pkg="roscpp_tutorials" type="talker" output="screen"
+        launch-prefix="bash -c 'sleep 10; rosservice call /gazebo/unpause_physics'"/>
+
+</launch>
